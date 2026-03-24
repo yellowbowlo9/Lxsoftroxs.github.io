@@ -52,9 +52,10 @@ permalink: /listening/
     const artist = track.artist?.["#text"] || "";
     const title  = track.name || "";
     const url    = track.url || "#";
+    const altText = title && artist ? `Album art for ${title} by ${artist}` : "Album art";
     return `
       <div class="listen-row">
-        <img alt="album art" src="${imgOf(track)}">
+        <img alt="${altText}" src="${imgOf(track)}" loading="lazy" decoding="async">
         <div>
           <div><a href="${url}" target="_blank" rel="noopener"><b>${title}</b></a></div>
           <div class="listen-meta">${artist}</div>
@@ -91,5 +92,18 @@ permalink: /listening/
   }
 
   loadRecent();
-  setInterval(loadRecent, REFRESH_MS);
+
+  // Smart polling: pause when tab is hidden to save API calls and battery
+  let refreshInterval = setInterval(loadRecent, REFRESH_MS);
+
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      clearInterval(refreshInterval);
+      refreshInterval = null;
+    } else {
+      // Refresh immediately when tab becomes visible, then resume interval
+      loadRecent();
+      refreshInterval = setInterval(loadRecent, REFRESH_MS);
+    }
+  });
 </script>

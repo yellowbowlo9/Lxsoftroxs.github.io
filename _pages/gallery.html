@@ -10,9 +10,10 @@ permalink: /gallery/
   {% assign gallery_images = site.static_files | where_exp:"file", "file.path contains '/assets/images/gallery'" %}
   {% for image in gallery_images %}
     {% if image.path contains '.jpg' or image.path contains '.png' or image.path contains '.gif' %}
+      {% assign clean_name = image.name | split: '.' | first | replace: '_', ' ' | replace: '-', ' ' %}
       <figure>
-        <img src="{{ image.path | relative_url }}" alt="{{ image.name }}" loading="lazy" decoding="async">
-        <figcaption>{{ image.name }}</figcaption>
+        <img src="{{ image.path | relative_url }}" alt="Gallery photo: {{ clean_name }}" loading="lazy" decoding="async">
+        <figcaption>{{ clean_name }}</figcaption>
       </figure>
     {% endif %}
   {% endfor %}
