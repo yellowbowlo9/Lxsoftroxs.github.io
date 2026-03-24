@@ -604,15 +604,17 @@ function calculateSpacing(currentDate, nextDate) {
   return Math.round(spacing);
 }
 
-// Render timeline
+// Render timeline using DocumentFragment for batch DOM insertion
 function renderTimeline(events) {
   const container = document.getElementById('timeline-events');
-  container.innerHTML = '';
 
   if (events.length === 0) {
+    container.textContent = '';
     container.innerHTML = '<div class="timeline-empty">No events found matching your criteria</div>';
     return;
   }
+
+  const fragment = document.createDocumentFragment();
 
   events.forEach((event, index) => {
     const item = document.createElement('div');
@@ -661,11 +663,11 @@ function renderTimeline(events) {
       html += '</div>';
     }
 
-    // Media
+    // Media - improved alt text with event context
     if (event.media && event.media.length > 0) {
       html += '<div class="timeline-media">';
-      event.media.forEach(img => {
-        html += `<img src="${img}" alt="Memory" loading="lazy">`;
+      event.media.forEach((img, i) => {
+        html += `<img src="${img}" alt="${event.title} - photo ${i + 1}" loading="lazy" decoding="async">`;
       });
       html += '</div>';
     }
@@ -689,8 +691,11 @@ function renderTimeline(events) {
 
     item.appendChild(dot);
     item.appendChild(content);
-    container.appendChild(item);
+    fragment.appendChild(item);
   });
+
+  // Single DOM update — replaces all children at once
+  container.replaceChildren(fragment);
 }
 
 // Update stats
@@ -712,14 +717,23 @@ function updateStats(events) {
   document.getElementById('milestones-count').textContent = milestones;
 }
 
+// Debounce utility for search input
+function debounce(fn, delay) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
 // Event listeners
-document.getElementById('timeline-search').addEventListener('input', function() {
+document.getElementById('timeline-search').addEventListener('input', debounce(function() {
   const searchTerm = this.value;
   const category = document.getElementById('category-filter').value;
   const filtered = filterEvents(searchTerm, category);
   renderTimeline(filtered);
   updateStats(filtered);
-});
+}, 300));
 
 document.getElementById('category-filter').addEventListener('change', function() {
   const searchTerm = document.getElementById('timeline-search').value;

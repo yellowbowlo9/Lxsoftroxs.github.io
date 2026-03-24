@@ -9,12 +9,32 @@
   <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>{{ page.title }} - {{ site.title }}</title>
+
+  <!-- Preconnect to critical third-party origins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="https://utteranc.es">
+  <link rel="dns-prefetch" href="https://ws.audioscrobbler.com">
+  <link rel="dns-prefetch" href="https://subscriber-api-lolroxs.vercel.app">
+
+  <!-- Google Fonts loaded via link instead of CSS @import for parallel loading -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap">
+
   <style>
     /* Critical CSS to prevent flash of unstyled content */
+    :root {
+      --color-primary: #6df;
+      --color-bg: #111;
+      --color-bg-secondary: #1a1a1a;
+      --color-bg-tertiary: #222;
+      --color-text: #ddd;
+      --color-text-dim: #666;
+    }
     .no-flash { visibility: hidden; }
     body {
-      background-color: #111;
-      color: #ddd;
+      background-color: var(--color-bg);
+      color: var(--color-text);
       font-family: 'Courier New', Courier, monospace;
       text-align: center;
       margin: 0;
@@ -24,25 +44,30 @@
       padding: 20px;
     }
     .site-header {
-      background-color: #222;
-      border-bottom: 3px solid #6df;
+      background-color: var(--color-bg-tertiary);
+      border-bottom: 3px solid var(--color-primary);
     }
     .site-footer {
-      background-color: #222;
-      border-top: 3px solid #6df;
+      background-color: var(--color-bg-tertiary);
+      border-top: 3px solid var(--color-primary);
       font-size: 0.8em;
-      color: #666;
+      color: var(--color-text-dim);
     }
     .container {
       max-width: 800px;
       margin: 20px auto;
       padding: 20px;
-      background-color: #1a1a1a;
+      background-color: var(--color-bg-secondary);
       border-radius: 8px;
       box-shadow: 0 0 10px #000;
     }
+    /* Critical nav styles to prevent layout shift */
+    .site-nav { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .nav-select { width: min(280px, 90vw); padding: 8px 12px; border-radius: 6px; }
   </style>
-  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+  <!-- Defer non-critical CSS: load async, fallback for no-JS -->
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}"></noscript>
 </head>
 <body class="no-flash">
   {% include header.html %}

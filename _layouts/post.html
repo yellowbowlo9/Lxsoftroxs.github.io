@@ -9,12 +9,25 @@ layout: default
   </div>
 </article>
 <hr>
-<section id="comments">
-  <script src="https://utteranc.es/client.js"
-          repo="lxsoftroxs/lxsoftroxs.github.io"
-          issue-term="pathname"
-          theme="github-dark"
-          crossorigin="anonymous"
-          async>
+<section id="comments" style="min-height:200px;">
+  <!-- Lazy-load comments: defer until idle or after 2s -->
+  <script>
+    (function() {
+      function loadComments() {
+        var s = document.createElement('script');
+        s.src = 'https://utteranc.es/client.js';
+        s.setAttribute('repo', 'lxsoftroxs/lxsoftroxs.github.io');
+        s.setAttribute('issue-term', 'pathname');
+        s.setAttribute('theme', 'github-dark');
+        s.setAttribute('crossorigin', 'anonymous');
+        s.async = true;
+        document.getElementById('comments').appendChild(s);
+      }
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(loadComments);
+      } else {
+        setTimeout(loadComments, 2000);
+      }
+    })();
   </script>
 </section>

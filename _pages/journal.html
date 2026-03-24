@@ -32,74 +32,57 @@ permalink: /journal/
   var currentYear = today.getFullYear();
   var currentMonth = today.getMonth();
 
-  // Build a calendar for a given year and month.
+  // Build a lookup map for journal entries by date for O(1) access
+  var entryMap = {};
+  journalEntries.forEach(function(e) { entryMap[e.date] = e; });
+
+  // Build a calendar for a given year and month using innerHTML for fewer DOM ops
   function buildCalendar(year, month) {
     var calendarDiv = document.getElementById('calendar');
-    calendarDiv.innerHTML = ''; // Clear previous calendar.
-    var table = document.createElement('table');
-    table.style.margin = '0 auto';
-    table.style.borderCollapse = 'collapse';
-    table.style.width = '80%';
-    table.style.maxWidth = '600px';
-
-    // Days of the week header.
-    var daysOfWeek = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    var headerRow = document.createElement('tr');
-    daysOfWeek.forEach(function(day) {
-      var th = document.createElement('th');
-      th.textContent = day;
-      th.style.border = '1px solid #666';
-      th.style.padding = '5px';
-      headerRow.appendChild(th);
-    });
-    table.appendChild(headerRow);
-
-    // Update the month display.
-    var monthDisplay = document.getElementById('month-display');
     var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    monthDisplay.textContent = monthNames[month] + ' ' + year;
+    document.getElementById('month-display').textContent = monthNames[month] + ' ' + year;
 
-    // Determine first day and number of days in the month.
-    var firstDay = new Date(year, month, 1);
-    var startingDay = firstDay.getDay();
+    var daysOfWeek = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    var startingDay = new Date(year, month, 1).getDay();
     var daysInMonth = new Date(year, month + 1, 0).getDate();
-    var date = 1;
 
-    // Create 6 rows (weeks) in the calendar.
+    var cellStyle = 'border:1px solid #666;padding:10px;text-align:center;';
+    var html = '<table style="margin:0 auto;border-collapse:collapse;width:80%;max-width:600px;">';
+    html += '<tr>';
+    daysOfWeek.forEach(function(day) {
+      html += '<th style="border:1px solid #666;padding:5px;">' + day + '</th>';
+    });
+    html += '</tr>';
+
+    var date = 1;
     for (var i = 0; i < 6; i++) {
-      var row = document.createElement('tr');
+      html += '<tr>';
       for (var j = 0; j < 7; j++) {
-        var cell = document.createElement('td');
-        cell.style.border = '1px solid #666';
-        cell.style.padding = '10px';
-        cell.style.textAlign = 'center';
         if (i === 0 && j < startingDay) {
-          cell.textContent = '';
+          html += '<td style="' + cellStyle + '"></td>';
         } else if (date > daysInMonth) {
-          cell.textContent = '';
+          html += '<td style="' + cellStyle + '"></td>';
         } else {
-          cell.textContent = date;
           var cellDate = year + '-' + (month + 1).toString().padStart(2, '0') + '-' + date.toString().padStart(2, '0');
-          // Check if there's a journal entry for this date.
-          var entry = journalEntries.find(e => e.date === cellDate);
+          var entry = entryMap[cellDate];
           if (entry) {
-            cell.style.backgroundColor = '#444';
-            cell.style.cursor = 'pointer';
-            cell.title = entry.title;
-            // On click, redirect to the entry's page.
-            cell.addEventListener('click', (function(entryCopy) {
-              return function(e) {
-                window.location.href = entryCopy.url;
-              };
-            })(entry));
+            html += '<td style="' + cellStyle + 'background-color:#444;cursor:pointer;" title="' + entry.title + '" data-url="' + entry.url + '">' + date + '</td>';
+          } else {
+            html += '<td style="' + cellStyle + '">' + date + '</td>';
           }
           date++;
         }
-        row.appendChild(cell);
       }
-      table.appendChild(row);
+      html += '</tr>';
     }
-    calendarDiv.appendChild(table);
+    html += '</table>';
+    calendarDiv.innerHTML = html;
+
+    // Use event delegation instead of per-cell listeners
+    calendarDiv.addEventListener('click', function(e) {
+      var td = e.target.closest('td[data-url]');
+      if (td) window.location.href = td.dataset.url;
+    });
   }
 
   // Event listeners for previous and next month buttons.
